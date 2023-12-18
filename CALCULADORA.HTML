@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Integrales</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.1.0/math.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+        }
+
+        #integralInput {
+            width: 80%;
+            font-size: 16px;
+            padding: 8px;
+            margin: 10px auto;
+        }
+
+        #keyboard {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 10px auto;
+        }
+
+        .key {
+            font-size: 18px;
+            padding: 10px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f5f5f5;
+        }
+
+        #result {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        #procedimiento {
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: left;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #graph {
+            width: 80%;
+            height: 400px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Calculadora de Integrales</h1>
+    </header>
+
+    <input type="text" id="integralInput" placeholder="Ejemplo: x^2 + 2">
+
+    <div id="keyboard" onclick="insertSymbol(event)">
+        <div class="key">7</div>
+        <div class="key">8</div>
+        <div class="key">9</div>
+        <div class="key">(</div>
+        <div class="key">)</div>
+        <div class="key">4</div>
+        <div class="key">5</div>
+        <div class="key">6</div>
+        <div class="key">+</div>
+        <div class="key">-</div>
+        <div class="key">1</div>
+        <div class="key">2</div>
+        <div class="key">3</div>
+        <div class="key">*</div>
+        <div class="key">/</div>
+        <div class="key">0</div>
+        <div class="key">x</div>
+        <div class="key">^</div>
+        <div class="key">.</div>
+        <div class="key" onclick="clearInput()">C</div>
+        <div class="key" onclick="insertSymbol(event)">∫</div>
+        <div class="key" onclick="insertSymbol(event)">sin</div>
+        <div class="key" onclick="insertSymbol(event)">cos</div>
+        <div class="key" onclick="insertSymbol(event)">tan</div>
+        <div class="key" onclick="insertSymbol(event)">sec</div>
+        <div class="key" onclick="insertSymbol(event)">csc</div>
+        <div class="key" onclick="insertSymbol(event)">cot</div>
+        <div class="key" onclick="insertSymbol(event)">e</div>
+        <div class="key" onclick="insertSymbol(event)">sqrt</div>
+        <div class="key" onclick="insertSymbol(event)">frac</div>
+        <div class="key" onclick="insertSymbol(event)">dx</div>
+        <div class="key" onclick="insertSymbol(event)">lim</div>
+    </div>
+
+    <button onclick="calcularIntegral()">Calcular</button>
+
+    <div id="result"></div>
+    
+    <div id="procedimiento"></div>
+
+    <div id="graph"></div>
+
+    <script>
+        function insertSymbol(event) {
+            if (event.target.classList.contains('key')) {
+                const symbol = event.target.textContent;
+                document.getElementById('integralInput').value += symbol;
+            }
+        }
+
+        function clearInput() {
+            document.getElementById('integralInput').value = '';
+        }
+
+        function calcularIntegral() {
+            const input = document.getElementById('integralInput').value;
+            
+            try {
+                // Realizar cálculos y mostrar el resultado
+                const resultado = calcularResultado(input);
+                document.getElementById('result').innerHTML = `Resultado: ${resultado.resultado}`;
+                
+                // Mostrar procedimiento paso a paso
+                document.getElementById('procedimiento').innerHTML = `Procedimiento: ${resultado.procedimiento}`;
+
+                // Generar y mostrar la gráfica
+                generarGrafica(input);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `Error al calcular la integral: ${error.message}`;
+                console.error(error);
+            }
+        }
+
+        function calcularResultado(expresion) {
+            // Utilizar Math.js para realizar cálculos simbólicos
+            const parsedExpression = math.parse(expresion);
+            const resultado = math.evaluate(parsedExpression, { x: 1 });
+            const procedimiento = math.simplify(parsedExpression);
+
+            return {
+                resultado: resultado.toString(),
+                procedimiento: procedimiento.toString()
+            };
+        }
+
+        function generarGrafica(expresion) {
+            // Utilizar Plotly para generar la gráfica
+            const x = math.range(-10, 10, 0.1).toArray();
+            const y = x.map((value) => math.evaluate(expresion.replace('x', value)));
+
+            // Crear la trama
+            const trace = {
+                x: x,
+                y: y,
+                type: 'scatter',
+                mode: 'lines',
+                marker: {color: 'blue'},
+            };
+
+            const layout = {
+                title: 'Gráfica de la Función',
+                xaxis: {title: 'x'},
+                yaxis: {title: 'y'},
+            };
+
+            // Mostrar la gráfica
+            Plotly.newPlot('graph', [trace], layout);
+        }
+    </script>
+
+</body>
+</html>
+
+
+
+
+
